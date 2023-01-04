@@ -1,0 +1,25 @@
+version: "3.8"
+services:
+  server:
+    image: carlasim/carla:0.9.6 
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=1
+    command: /bin/bash -c "SDL_VIDEODRIVER=offscreen SDL_HINT_CUDA_DEVICE=0 ./CarlaUE4.sh  -quality-level=Low -world-port=2021 -nosound -carla-server" 
+
+
+  cuda:
+    build:
+      context: .
+      dockerfile: docker/cuda.Dockerfile
+    image: git.uwaterloo.ca:5050/watonomous/registry/carla-rl/cuda
+
+
+  dev:
+    build:
+      context: .
+      dockerfile: docker/dev.Dockerfile
+    image: git.uwaterloo.ca:5050/watonomous/registry/carla-rl/dev
+    volumes:
+      - ./src:/home/docker/src
+
