@@ -1,0 +1,47 @@
+checkpoint: null
+exp_name: test
+
+# xparl address for parallel training
+xparl_addr: localhost:8080
+
+# The number of carla servers (N) started using:
+#   --scale server=N 
+num_servers: 1
+
+# choose deep learning framework: torch or paddle
+framework: paddle
+
+env:
+  # which environment to learn in
+  #   either carla-v0 or carla_mpc-v0
+  name: carla-v0
+  dt: 0.025
+  # Change this to match your server user
+  host_base: carla_rl_rowan_server
+  port: 2021
+  render: false
+  ego_vehicle_filter: "vehicle.lincoln*"
+  desired_speed: 12
+  num_veh: 1
+  num_ped: 0
+  max_steps: 500
+
+model:
+  actor_lr: 0.0003
+  critic_lr: 0.0003
+  gamma: 0.99
+  tau: 0.005
+  alpha: 0.3
+  alpha_min: 0.1
+
+train:
+  # max time steps to run environment
+  total_steps: 5000000
+  # the step interval between two consecutive evaluations
+  test_every_steps: 10000
+  warmup_steps: 2000
+  start_save_steps: 0
+  save_step_freq: 100000
+  eval_episodes: 10 
+  memory_size: 500000
+  batch_size: 512

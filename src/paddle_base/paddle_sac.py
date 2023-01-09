@@ -16,7 +16,8 @@ class PaddleSAC(parl.Algorithm):
                  tau=None,
                  alpha=None,
                  actor_lr=None,
-                 critic_lr=None):
+                 critic_lr=None,
+                 **kwargs):
         """ SAC algorithm
             Args:
                 model(parl.Model): forward network of actor and critic.

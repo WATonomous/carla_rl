@@ -1,0 +1,35 @@
+2023-01-09 21:37:19 INFO     Env running on server carla_rl_rowan_server_1
+2023-01-09 21:37:19 INFO     connecting to Carla server...
+2023-01-09 21:37:22 INFO     Carla server port 2021 connected!
+2023-01-09 21:38:49 INFO     Env running on server carla_rl_rowan_server_1
+2023-01-09 21:38:49 INFO     connecting to Carla server...
+2023-01-09 21:38:52 INFO     Carla server port 2021 connected!
+2023-01-09 21:40:09 INFO     Env running on server carla_rl_rowan_server_1
+2023-01-09 21:40:09 INFO     connecting to Carla server...
+2023-01-09 21:40:12 INFO     Carla server port 2021 connected!
+2023-01-09 21:40:53 INFO     Env running on server carla_rl_rowan_server_1
+2023-01-09 21:40:53 INFO     connecting to Carla server...
+2023-01-09 21:40:57 INFO     Carla server port 2021 connected!
+2023-01-09 21:41:09 DEBUG    Left Lane invasion!
+2023-01-09 21:41:22 DEBUG    Left Lane invasion!
+2023-01-09 21:41:32 DEBUG    Left Lane invasion!
+2023-01-09 21:41:45 DEBUG    Left Lane invasion!
+2023-01-09 21:41:54 DEBUG    Left Lane invasion!
+2023-01-09 21:42:07 DEBUG    Left Lane invasion!
+2023-01-09 21:42:18 DEBUG    Left Lane invasion!
+2023-01-09 21:42:27 DEBUG    Left Lane invasion!
+2023-01-09 21:42:38 DEBUG    Left Lane invasion!
+2023-01-09 21:42:48 DEBUG    Left Lane invasion!
+2023-01-09 21:42:57 DEBUG    Left Lane invasion!
+2023-01-09 21:43:08 DEBUG    Left Lane invasion!
+2023-01-09 21:43:17 INFO     Env running on server carla_rl_rowan_server_1
+2023-01-09 21:43:17 INFO     connecting to Carla server...
+2023-01-09 21:43:21 INFO     Carla server port 2021 connected!
+2023-01-09 21:43:30 DEBUG    Right Lane invasion!
+2023-01-09 21:43:39 DEBUG    Right Lane invasion!
+2023-01-09 21:43:48 DEBUG    Right Lane invasion!
+2023-01-09 21:43:58 DEBUG    Right Lane invasion!
+2023-01-09 21:44:04 INFO     Env running on server carla_rl_rowan_server_1
+2023-01-09 21:44:04 INFO     connecting to Carla server...
+2023-01-09 21:44:07 INFO     Carla server port 2021 connected!
+2023-01-09 21:44:41 DEBUG    Right Lane invasion!
