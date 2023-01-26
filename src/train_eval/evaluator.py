@@ -34,6 +34,7 @@ def _run_evaluate_episodes(agent, env, eval_episodes):
     avg_speed = 0.0
     avg_collision = 0.0
     for k in range(eval_episodes):
+        print(f"Running episode {k}")
         obs = env.reset()
         done = False
         steps = 0
@@ -41,11 +42,8 @@ def _run_evaluate_episodes(agent, env, eval_episodes):
         max_speed = 0
         while not done:
             steps += 1
-            print("Evaluate Predicting")
             action = agent.predict(obs)
-            print("Evaluate Stepping")
             obs, reward, done, state_info = env.step(action)
-            print("Evaluate Going fine")
             avg_reward += reward
             avg_speed += np.linalg.norm(state_info["velocity_t"])
             if np.linalg.norm(state_info["velocity_t"]) > max_speed:

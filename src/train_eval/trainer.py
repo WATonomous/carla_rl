@@ -37,9 +37,6 @@ def train(eval_env, train_env, agent, rpm, train_cfg, model_out_dir):
             print("Learning step ", total_steps)
             agent.learn(batch_obs, batch_action, batch_reward, batch_next_obs,
                         batch_terminal)
-            print("Learnt the step")
-        if (total_steps%100 == 0):
-            print("Step #: ", total_steps)
 
         # Save agent
         if model_out_dir is not None and total_steps > train_cfg['start_save_steps'] and total_steps > last_save_steps + train_cfg['save_step_freq']:
