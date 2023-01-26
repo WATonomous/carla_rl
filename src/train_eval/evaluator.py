@@ -1,8 +1,9 @@
 import pygame
 import time
+import numpy as np
 
 # Runs policy for 3 episodes by default and returns average reward
-def render_evaluate_episodes(agent, env, num_episodes, max_steps):
+def render_evaluate_episodes(agent, env, num_episodes):
     pygame.init()
     display = pygame.display.set_mode(
     (env.env.CAM_RES, env.env.CAM_RES),
@@ -12,7 +13,7 @@ def render_evaluate_episodes(agent, env, num_episodes, max_steps):
         obs = env.reset()
         done = False
         steps = 0
-        while not done and steps < max_steps:
+        while not done:
             steps += 1
             action = agent.predict(obs)
             obs, reward, done, _ = env.step(action)
@@ -24,7 +25,7 @@ def render_evaluate_episodes(agent, env, num_episodes, max_steps):
     pygame.display.quit()
     return avg_reward
 
-def run_evaluate_episodes(agent, env, eval_episodes):
+def _run_evaluate_episodes(agent, env, eval_episodes):
     avg_reward = 0.0
     avg_steps = 0.0
     avg_success = 0.0
@@ -38,7 +39,7 @@ def run_evaluate_episodes(agent, env, eval_episodes):
         steps = 0
         state_info = None
         max_speed = 0
-        while not done and steps < env._max_episode_steps:
+        while not done:
             steps += 1
             print("Evaluate Predicting")
             action = agent.predict(obs)
@@ -74,3 +75,12 @@ def run_evaluate_episodes(agent, env, eval_episodes):
         "average_max_speed": np.average(max_speed_per_episode),
         "avg_collision": avg_collision,
     }
+
+def run_and_time_evaluate(agent, env, episodes):
+    eval_runtime = time.time()
+    print("Running Evaluation")
+    metrics = _run_evaluate_episodes(agent, env, episodes)  
+    print("Evaluation Done")
+    eval_runtime = time.time() - eval_runtime
+    metrics["eval_runtime"] = eval_runtime
+    return metrics

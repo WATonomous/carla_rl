@@ -34,7 +34,7 @@ class CarlaEnv(gym.Env):
             setattr(self, k, v)
         host_num = self.host.split("_")[-1]
         self.logger = setup_carla_logger(
-            "output_logger", experiment_name=f"{cfg['exp_name']}_{host_num}")
+            "/output_NEW", experiment_name=f"{cfg['exp_name']}_{host_num}")
         self.logger.info(f"Env running on server {host}")
 
         # action and observation space
@@ -52,15 +52,14 @@ class CarlaEnv(gym.Env):
             self.ego_vehicle_filter, color='49,8,8')
 
         # Collision sensor
-        self.collision_hist = []  # The collision history
-        self.collision_hist_l = 1  # collision history length
+        self.collision_occured = False
         self.collision_bp = self.world.get_blueprint_library().find(
             'sensor.other.collision')
 
         self.CAM_RES = 1024
         # Add camera sensor
         self.camera_img = np.zeros((self.CAM_RES, self.CAM_RES, 3), dtype=np.uint8)
-        self.camera_trans = carla.Transform(carla.Location(x=0.8, z=30), carla.Rotation(pitch=-90))
+        self.camera_trans = carla.Transform(carla.Location(x=0.8, z=60), carla.Rotation(pitch=-90))
         self.camera_bp = self.world.get_blueprint_library().find('sensor.camera.rgb')
         # Modify the attributes of the blueprint to set image resolution and field of view.
         self.camera_bp.set_attribute('image_size_x', str(self.CAM_RES))
@@ -91,7 +90,7 @@ class CarlaEnv(gym.Env):
         self.og_camera_img = None
 
     def reset(self):
-        self.collision_sensor = None
+        self.ego_collision_sensor = None
         self.lane_sensor = None
 
         # Delete sensors, vehicles and walkers
@@ -127,24 +126,15 @@ class CarlaEnv(gym.Env):
                     y=init_fwd_speed * np.sin(yaw))
 
         # Add collision sensor
-        self.collision_sensor = self.world.try_spawn_actor(
+        self.ego_collision_sensor = self.world.try_spawn_actor(
             self.collision_bp, carla.Transform(), attach_to=self.ego)
-        self.actors.append(self.collision_sensor)
-        self.collision_sensor.listen(
-            lambda event: get_collision_hist(event))
-
-        def get_collision_hist(event):
-            impulse = event.normal_impulse
-            intensity = np.sqrt(impulse.x**2 + impulse.y**2 +
-                                impulse.z**2)
-            self.collision_hist.append(intensity)
-            if len(self.collision_hist) > self.collision_hist_l:
-                self.collision_hist.pop(0)
-
+        self.actors.append(self.ego_collision_sensor)
+        self.ego_collision_sensor.listen(
+            lambda event: self.collision_event(event))
+        self.collision_occured = False
 
         def get_camera_img(data):
             self.og_camera_img = data
-        self.collision_hist = []
         self.camera_sensor = self.world.spawn_actor(self.camera_bp, self.camera_trans, attach_to=self.ego)
         self.actors.append(self.camera_sensor)
         self.camera_sensor.listen(lambda data: get_camera_img(data))
@@ -244,24 +234,11 @@ class CarlaEnv(gym.Env):
         return self._get_obs(), copy.deepcopy(self.state_info)
 
     def step(self, action):
-
-        # Assign acc/steer/brake to action signal
-        # Ver. 1 input is the value of control signal
-        # throttle_or_brake, steer = action[0], action[1]
-        # if throttle_or_brake >= 0:
-        #     throttle = throttle_or_brake
-        #     brake = 0
-        # else:
-        #     throttle = 0
-        #     brake = -throttle_or_brake
-
-        # Ver. 2 input is the delta value of control signal
-        # TODO:[another kind of action] change the action space to [-2, 2]
         current_action = np.array(action) + self.last_action
         current_action = np.clip(
             current_action, -1.0, 1.0, dtype=np.float32)
         throttle_or_brake, steer = current_action
-
+        # throttle_or_brake = 0
         if throttle_or_brake >= 0:
             throttle = throttle_or_brake
             brake = 0
@@ -354,6 +331,9 @@ class CarlaEnv(gym.Env):
         return (self._get_obs(), current_reward, isDone,
                 copy.deepcopy(self.state_info))
 
+    def collision_event(self, event):
+        if event.transform.location.y > -30:
+            self.collision_occured = True
 
     def to_display_surface(self, image):
         image.convert(cc.Raw)
@@ -384,7 +364,10 @@ class CarlaEnv(gym.Env):
     def _try_spawn_random_vehicle(self):
         transform = carla.Transform()
         transform.location.x = 103.5
+        # transform.location.x = 115
         transform.location.y = np.random.randint(0, 6) * -8 + 35
+        # transform.location.y = -55
+        # transform.location.y = 4
         transform.location.z = 0.2
         transform.rotation.yaw += -90
         vehicle = self.world.try_spawn_actor(self.ego_bp, transform)
@@ -394,15 +377,8 @@ class CarlaEnv(gym.Env):
             collision_sensor = self.world.try_spawn_actor(
                 self.collision_bp, carla.Transform(), attach_to=vehicle)
             self.actors.append(collision_sensor)
-            def get_collision_hist(event):
-                impulse = event.normal_impulse
-                intensity = np.sqrt(impulse.x**2 + impulse.y**2 +
-                                    impulse.z**2)
-                self.collision_hist.append(intensity)
-                if len(self.collision_hist) > self.collision_hist_l:
-                    self.collision_hist.pop(0)
             collision_sensor.listen(
-                lambda event: get_collision_hist(event))
+                lambda event: self.collision_event(event))
             return vehicle
         raise Exception("Failed to spawn target vehicle")
 
@@ -422,17 +398,8 @@ class CarlaEnv(gym.Env):
             collision_sensor = self.world.try_spawn_actor(
                 self.collision_bp, carla.Transform(), attach_to=ped)
             self.actors.append(collision_sensor)
-            def get_collision_hist(event):
-                if self.ped.get_location().y < -6:
-                    return
-                impulse = event.normal_impulse
-                intensity = np.sqrt(impulse.x**2 + impulse.y**2 +
-                                    impulse.z**2)
-                self.collision_hist.append(intensity)
-                if len(self.collision_hist) > self.collision_hist_l:
-                    self.collision_hist.pop(0)
             collision_sensor.listen(
-                lambda event: get_collision_hist(event))
+                lambda event: self.collision_event(event))
             return ped
         raise Exception("Failed to spawn ped")
 
@@ -459,7 +426,7 @@ class CarlaEnv(gym.Env):
             return True
 
         # If collides
-        if len(self.collision_hist) > 0:
+        if self.collision_occured:
             # print("Collision happened! Episode Done.")
             self.logger.debug('Collision happened!')
             self.isCollided = True

@@ -5,18 +5,38 @@ import numpy as np
 from parl.utils import csv_logger, logger, tensorboard
 from parl.env.continuous_wrappers import ActionMappingWrapper
 
+class LocalEnv(object):
+    def __init__(self, cfg):
+        hostname = f"{cfg['env']['host_base']}_1"
+        self.env = gym.make(cfg['env']['name'], host=hostname, cfg=cfg)
+        self.env = ActionMappingWrapper(self.env)
+        self.obs_dim = self.env.state_space.shape[0]
+        self.action_dim = self.env.action_space.shape[0]
+
+    def reset(self):
+        obs, _ = self.env.reset()
+        return obs
+
+    def step(self, action):
+        return self.env.step(action)
+
+
+
 class ParallelEnv(object):
-    def __init__(self, env_name, xparl_addr, train_envs_params, init_step=0):
-        parl.connect(xparl_addr)
+    # def __init__(self, env_name, xparl_addr, train_envs_params, init_step=0):
+    def __init__(self, cfg):
+        parl.connect(cfg['xparl_addr'], distributed_files=['./*'])
+        num_train_hosts = cfg['num_servers'] - 1
+        assert num_train_hosts > 0, "To train, at least 2 servers are needed"
+        train_hostnames = [f"{cfg['env']['host_base']}_{i+1}" for i in range(1,num_train_hosts+1)]
         self.env_list = [
-            CarlaRemoteEnv(env_name=env_name, params=params)
-            for params in train_envs_params
+            CarlaRemoteEnv(hostname, cfg)
+            for hostname in train_hostnames
         ]
         self.env_num = len(self.env_list)
         self.episode_reward_list = [0] * self.env_num
         self.episode_steps_list = [0] * self.env_num
-        self._max_episode_steps = train_envs_params[0]['max_time_episode']
-        self.total_steps = init_step
+        self.total_steps = 0
 
     def reset(self):
         obs_list = [env.reset() for env in self.env_list]
@@ -43,8 +63,7 @@ class ParallelEnv(object):
             self.episode_reward_list[i] += self.reward_list[i]
 
             self.obs_list[i] = self.next_obs_list[i]
-            if self.done_list[i] or self.episode_steps_list[
-                    i] >= self._max_episode_steps:
+            if self.done_list[i]:
                 tensorboard.add_scalar('train/episode_reward_env{}'.format(i),
                                        self.episode_reward_list[i],
                                        self.total_steps)
@@ -57,27 +76,15 @@ class ParallelEnv(object):
                 self.obs_list[i] = obs_list_i.get()
                 self.obs_list[i] = np.array(self.obs_list[i])
         return self.obs_list
+    
+    def __len__(self):
+        return self.env_num
 
-
-class LocalEnv(object):
-    def __init__(self, cfg):
-        hostname = f"{cfg['env']['host_base']}_1"
-        self.env = gym.make(cfg['env']['name'], host=hostname, cfg=cfg)
-        self.env = ActionMappingWrapper(self.env)
-        self.obs_dim = self.env.state_space.shape[0]
-        self.action_dim = self.env.action_space.shape[0]
-
-    def reset(self):
-        obs, _ = self.env.reset()
-        return obs
-
-    def step(self, action):
-        return self.env.step(action)
 
 
 @parl.remote_class(wait=False)
 class CarlaRemoteEnv(object):
-    def __init__(self, env_name, params):
+    def __init__(self, hostname, cfg):
         class ActionSpace(object):
             def __init__(self,
                          action_space=None,
@@ -94,10 +101,8 @@ class CarlaRemoteEnv(object):
             def sample(self):
                 return self.action_space.sample()
 
-        self.env = gym.make(env_name, params=params)
-        #self.env = gym.make('carla-v0')
+        self.env = gym.make(cfg['env']['name'], host=hostname, cfg=cfg)
         self.env = ActionMappingWrapper(self.env)
-        self._max_episode_steps = int(params['max_time_episode'])
         self.action_space = ActionSpace(
             self.env.action_space, self.env.action_space.low,
             self.env.action_space.high, self.env.action_space.shape)
@@ -108,3 +113,5 @@ class CarlaRemoteEnv(object):
 
     def step(self, action):
         return self.env.step(action)
+
+

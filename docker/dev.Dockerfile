@@ -60,6 +60,8 @@ RUN python3 -m pip install paddlepaddle-gpu -i https://mirror.baidu.com/pypi/sim
 # RUN python3 -m pip install paddlepaddle-gpu -i https://mirror.baidu.com/pypi/simple
 # RUN python3 -m pip install -e gym_carla/.
 RUN python3 -m pip install pyyaml
+RUN python3 -m pip install -U tensorboard
+RUN python3 -m pip install tensorboard
 
 COPY --chown=docker docker/supervisord.conf /etc/supervisor/supervisord.conf
 RUN chown -R docker:docker /etc/supervisor
