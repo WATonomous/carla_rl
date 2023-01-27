@@ -1,0 +1,72 @@
+checkpoint: /output_OLD/model_mar7_agc/step_200032
+# If set to `null`, experiment will not be recorded
+# Otherwise, model, tensorboard, and log files will be saved to
+# /output_NEW/exp_name
+output_dir: /output_NEW
+exp_name: test
+
+# xparl address for parallel training
+xparl_addr: localhost:8080
+
+# The number of carla servers (N) started using:
+#   --scale server=N 
+num_servers: 4
+
+# choose deep learning framework: torch or paddle
+framework: paddle
+
+env:
+  # which environment to learn in
+  #   either carla-v0 or carla_mpc-v0
+  name: carla-v0
+  dt: 0.025
+  # Change this to match your server user
+  host_base: carla_rl_rowan_server
+  port: 2021
+  render: false
+  ego_vehicle_filter: "vehicle.lincoln*"
+  desired_speed: 12
+  num_veh: 1
+  num_ped: 0
+  max_steps: 500
+  reward_weights:
+    # Route completion reward
+    c_completion: 100.0
+    # Route non-completion penalty (for any reason: crash, too many steps)
+    c_terminal: -10.0
+
+    # Velocity reward constants
+    c_v_eff_under_limit: 1.0
+    c_v_eff_over_limit: -2.0
+    # Penalty for needing another step
+    r_step: -0.0
+    # Penalty for non-smooth actions
+    c_action_reg: -0.0
+    # Penalty for yaw delta w.r.t. road heading
+    c_yaw_delta: -0.0
+    # Penalty for lateral deviation
+    c_lat_dev: -0.1
+    # Distance from goal penalty
+    c_dist_from_goal: 3.5
+    # Progress reward
+    c_progress: 0.0
+
+model:
+  actor_lr: 0.0003
+  critic_lr: 0.0003
+  gamma: 0.99
+  tau: 0.005
+  alpha: 0.3
+  alpha_min: 0.1
+
+train:
+  # max time steps to run environment
+  total_steps: 5000000
+  # the step interval between two consecutive evaluations
+  test_every_steps: 1000
+  warmup_steps: 2000
+  start_save_steps: 0
+  save_step_freq: 100000
+  eval_episodes: 3 
+  memory_size: 500000
+  batch_size: 512
