@@ -29,8 +29,10 @@ class CarlaEnv(gym.Env):
         for k, v in cfg['env'].items():
             setattr(self, k, v)
         host_num = self.host.split("_")[-1]
+        exp_name = cfg['exp_name']
+        outdir = cfg['output_dir']
         self.logger = setup_carla_logger(
-            cfg['output_dir'], experiment_name=f"{cfg['exp_name']}_{host_num}")
+            output_dir=outdir, exp_name=exp_name, rank=host_num)
         self.logger.info(f"Env running on server {host}")
 
         # action and observation space

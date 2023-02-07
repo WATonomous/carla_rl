@@ -28,5 +28,6 @@ services:
     volumes:
       - ./src:/home/docker/src
       - /mnt/wato-drive/rowan-drl:/output_OLD
-      - /mnt/wato-drive2/carla_rl:/output_NEW
+      # - /mnt/wato-drive2/carla_rl:/output_NEW
+      - /home/rowan/carla_rl_new_output:/output_NEW
 

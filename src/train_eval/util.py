@@ -1,5 +1,8 @@
 from paddle_base import PaddleModel, PaddleSAC, PaddleAgent
 from parl.utils import tensorboard, ReplayMemory
+import os
+import shutil
+
 
 def init_agent_and_rpm(obs_dim, action_dim, cfg):
     '''
@@ -17,8 +20,8 @@ def init_agent_and_rpm(obs_dim, action_dim, cfg):
     agent = CarlaAgent(algorithm)
     train_params = cfg['train']
     rpm = ReplayMemory(
-        max_size=train_params['memory_size'], obs_dim=obs_dim, act_dim=action_dim)
-    if cfg['checkpoint'] is not None:
+        max_size=int(train_params['memory_size']), obs_dim=obs_dim, act_dim=action_dim)
+    if 'checkpoint' in cfg and cfg['checkpoint'] is not None:
         agent.restore(f"{cfg['checkpoint']}.ckpt")
         rpm.load(f"{cfg['checkpoint']}.npz")
     return agent, rpm
@@ -53,3 +56,14 @@ def log_tb_metrics(steps, metrics):
             metrics["avg_collision"],
             steps,
         )
+
+def setup_logdir(cfg):
+    exp_name = cfg['exp_name']
+    if exp_name is None:
+         return None
+    outdir = cfg['output_dir']
+    logdir = f"{outdir}/{exp_name}"
+    if os.path.exists(logdir):
+        shutil.rmtree(logdir)
+    os.makedirs(logdir)
+    return logdir

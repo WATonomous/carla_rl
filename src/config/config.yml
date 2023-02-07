@@ -1,16 +1,16 @@
-checkpoint: /output_OLD/model_mar7_agc/step_200032
+# checkpoint: /output_OLD/model_mar7_agc/step_200032
 # If set to `null`, experiment will not be recorded
 # Otherwise, model, tensorboard, and log files will be saved to
 # /output_NEW/exp_name
 output_dir: /output_NEW
-exp_name: test
+exp_name: train_feb_7
 
 # xparl address for parallel training
 xparl_addr: localhost:8080
 
 # The number of carla servers (N) started using:
 #   --scale server=N 
-num_servers: 4
+num_servers: 2
 
 # choose deep learning framework: torch or paddle
 framework: paddle
@@ -61,12 +61,12 @@ model:
 
 train:
   # max time steps to run environment
-  total_steps: 5000000
+  total_steps: 5.0e+6 # 5mill
   # the step interval between two consecutive evaluations
-  test_every_steps: 1000
+  test_every_steps: 1.0e+4 # 10k
   warmup_steps: 2000
   start_save_steps: 0
-  save_step_freq: 100000
+  save_step_freq: 1.0e+5 # 100k
   eval_episodes: 3 
-  memory_size: 500000
+  memory_size: 1.0e+5 # 500k
   batch_size: 512
