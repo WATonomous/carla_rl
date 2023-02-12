@@ -2,16 +2,15 @@ import argparse
 import numpy as np
 import yaml
 from parl.utils import tensorboard
-import time
 import typing as T
 
 from env.util.env_utils import ParallelEnv, LocalEnv
-from train_eval.evaluator import run_and_time_evaluate
-from train_eval.util import init_agent_and_rpm, log_tb_metrics
+from train_eval.util import init_agent_and_rpm, setup_logdir
 from train_eval.trainer import train
 
 
 def main(cfg: T.Dict):
+    logdir = setup_logdir(cfg)
     # env for eval
     eval_env = LocalEnv(cfg)
     # env for parallel training
@@ -19,9 +18,10 @@ def main(cfg: T.Dict):
     agent, rpm = init_agent_and_rpm(eval_env.obs_dim, eval_env.action_dim, cfg)
 
     model_out_dir = None
-    if cfg['exp_name'] is not None:
-        model_out_dir = f"model_{cfg['exp_name']}"
-        tensorboard.logger.set_dir(f"tensorboard_{cfg['exp_name']}_train")
+
+    if logdir is not None:
+        model_out_dir = f"{logdir}/model"
+        tensorboard.logger.set_dir(f"{logdir}/tensorboard")
 
     train(eval_env, env_list, agent, rpm, cfg['train'], model_out_dir)
 
