@@ -2,6 +2,7 @@ from paddle_base import PaddleModel, PaddleSAC, PaddleAgent
 from parl.utils import tensorboard, ReplayMemory
 import os
 import shutil
+import yaml
 
 
 def init_agent_and_rpm(obs_dim, action_dim, cfg):
@@ -66,4 +67,5 @@ def setup_logdir(cfg):
     if os.path.exists(logdir):
         shutil.rmtree(logdir)
     os.makedirs(logdir)
+    yaml.safe_dump(cfg, open(f"{logdir}/config.yml", "w"))
     return logdir
