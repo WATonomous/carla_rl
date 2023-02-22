@@ -1,4 +1,5 @@
 from .carla_env_orig import CarlaEnv
+from .carla_env_mpc import CarlaEnvMPC
 from gym.envs.registration import register
 
 register(
@@ -6,7 +7,7 @@ register(
     entry_point='env:CarlaEnv',
 )
 
-# register(
-#     id='carla_mpc-v0',
-#     entry_point='gym_carla.envs:CarlaEnvMPC',
-# )
+register(
+    id='carla_mpc-v0',
+    entry_point='env:CarlaEnvMPC',
+)

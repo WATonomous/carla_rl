@@ -59,9 +59,9 @@ def log_tb_metrics(steps, metrics):
         )
 
 def setup_logdir(cfg):
-    exp_name = cfg['exp_name']
-    if exp_name is None:
+    if 'exp_name' not in cfg or cfg['exp_name'] is None:
          return None
+    exp_name = cfg['exp_name']
     outdir = cfg['output_dir']
     logdir = f"{outdir}/{exp_name}"
     if os.path.exists(logdir):

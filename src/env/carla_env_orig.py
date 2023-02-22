@@ -39,7 +39,7 @@ class CarlaEnv(gym.Env):
         self.action_space = spaces.Box(
             np.array([-2.0, -2.0]), np.array([2.0, 2.0]), dtype=np.float32)
         self.state_space = spaces.Box(
-            low=-50.0, high=50.0, shape=(15 + 3*self.num_veh, ), dtype=np.float32)
+            low=-50.0, high=50.0, shape=(12 + 3*self.num_veh + 3*self.num_ped, ), dtype=np.float32)
 
         # Connect to carla server and get world object
         self._make_carla_client(self.host, self.port)
@@ -81,7 +81,7 @@ class CarlaEnv(gym.Env):
         # Future distances to get heading
         self.distances = [1., 5., 10.]
         self.target_vehicles = []
-        self.ped = None
+        self.peds = []
 
         self.og_camera_img = None
 
@@ -136,18 +136,20 @@ class CarlaEnv(gym.Env):
             self.state_info['target_vehicles_dist_y'].append(t_loc.y - e_loc.y)
             self.state_info['target_vehicles_dist_x'].append(e_loc.x - t_loc.x)
             self.state_info['target_vehicles_vel'].append(-1*target_veh.get_velocity().y)
-        self.state_info['ped_dist_y'] = 50
-        self.state_info['ped_dist_x'] = 50
-        self.state_info['ped_vel'] = 0
-        if self.ped is not None:
-            t_loc = self.ped.get_location()
-            e_loc = self.ego.get_location()
-            self.state_info['ped_dist_y'] = t_loc.y - e_loc.y
-            self.state_info['ped_dist_x'] = e_loc.x - t_loc.x
-            self.state_info['ped_vel'] = -1*self.ped.get_velocity().y
+        self.state_info['peds_dist_y'] = []
+        self.state_info['peds_dist_x'] = []
+        self.state_info['peds_vel'] = []
+        for target_ped in self.peds:
+            t_loc = target_ped.get_location()
+            e_loc = target_ped.get_location()
+            self.state_info['peds_dist_y'].append(t_loc.y - e_loc.y)
+            self.state_info['peds_dist_x'].append(e_loc.x - t_loc.x)
+            self.state_info['peds_vel'].append(-1*target_ped.get_velocity().y)
 
     def _collision_event(self, event):
-        if event.transform.location.y > -30:
+        y_loc = event.transform.location.y
+        # Make sure the collision is in the intersection
+        if y_loc > -30 and y_loc < 30:
             self.collision_occured = True
 
     def _to_display_surface(self, image):
@@ -244,7 +246,6 @@ class CarlaEnv(gym.Env):
             return True
 
         # If out of lane
-        # if len(self.lane_invasion_hist) > 0: 
         if abs(self.state_info['lateral_dist_t']) > 2.0:
             if self.state_info['lateral_dist_t'] > 0:
                 self.logger.debug('Left Lane invasion!')
@@ -450,9 +451,9 @@ class CarlaEnv(gym.Env):
         target_dist_y = np.array(self.state_info['target_vehicles_dist_y']).reshape((len(self.state_info['target_vehicles_dist_y']), )) / 40
         target_dist_x = np.array(self.state_info['target_vehicles_dist_x']).reshape((len(self.state_info['target_vehicles_dist_y']), )) / 30
         target_vel = np.array(self.state_info['target_vehicles_vel']).reshape((len(self.state_info['target_vehicles_dist_y']), )) / 7
-        ped_dist_y = np.array(self.state_info['ped_dist_y']).reshape((1, )) / 40
-        ped_dist_x = np.array(self.state_info['ped_dist_x']).reshape((1, )) / 30
-        ped_vel = np.array(self.state_info['ped_vel']).reshape((1, )) / 7
+        ped_dist_y = np.array(self.state_info['peds_dist_y']).reshape((len(self.state_info['peds_dist_y']), )) / 40
+        ped_dist_x = np.array(self.state_info['peds_dist_x']).reshape((len(self.state_info['peds_dist_y']), )) / 30
+        ped_vel = np.array(self.state_info['peds_vel']).reshape((len(self.state_info['peds_dist_y']), )) / 7
 
         
         info_vec = np.concatenate([
@@ -496,7 +497,9 @@ class CarlaEnv(gym.Env):
             90)
         veh2_vel = carla.Vector3D(0, self.desired_speed, 0)
         self.target_vehicles = []
+        self.peds = []
         assert(self.num_veh <= 2)
+        assert(self.num_ped <= 1)
         if self.num_veh > 0:
             self.target_vehicles.append(self._try_spawn_random_vehicle(veh1_t, veh1_vel))
             self.actors.append(self.target_vehicles[-1])
@@ -504,8 +507,8 @@ class CarlaEnv(gym.Env):
             self.target_vehicles.append(self._try_spawn_random_vehicle(veh2_t, veh2_vel))
             self.actors.append(self.target_vehicles[-1])
         if self.num_ped > 0:
-            self.ped = self._try_spawn_random_ped()
-            self.actors.append(self.ped)
+            self.peds.append(self._try_spawn_random_ped())
+            self.actors.append(self.peds[-1])
         self._try_spawn_ego_vehicle_at(self.start)
 
         # Add collision sensor

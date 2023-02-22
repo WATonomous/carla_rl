@@ -1,6 +1,6 @@
 import argparse
 from env.util.env_utils import LocalEnv
-from parl.utils import logger, tensorboard
+from parl.utils import tensorboard
 import yaml
 import typing as T
 from train_eval.util import init_agent_and_rpm, log_tb_metrics, setup_logdir

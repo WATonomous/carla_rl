@@ -18,10 +18,11 @@ def setup_carla_logger(output_dir, exp_name, rank, logger_name='carla-debug'):
         fmt='%(asctime)s %(levelname)-8s %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S')
     logger.setLevel(logging.DEBUG)
-    log_dir = os.path.join(output_dir, exp_name, "env_logs")
-    os.makedirs(log_dir, exist_ok=True)
-    fileHandler = logging.FileHandler(os.path.join(log_dir, f'env_{rank}.log'))
-    fileHandler.setFormatter(formatter)
-    logger.addHandler(fileHandler)
+    if exp_name is not None:
+        log_dir = os.path.join(output_dir, exp_name, "env_logs")
+        os.makedirs(log_dir, exist_ok=True)
+        fileHandler = logging.FileHandler(os.path.join(log_dir, f'env_{rank}.log'))
+        fileHandler.setFormatter(formatter)
+        logger.addHandler(fileHandler)
     logger.addHandler(logging.StreamHandler()) # Write logging to STDOUT too
     return logger
