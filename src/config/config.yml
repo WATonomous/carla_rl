@@ -1,16 +1,16 @@
-# checkpoint: /output_OLD/model_mar7_agc/step_200032
+# checkpoint: /output_NEW/train_feb_13_env_mpc/model/step_900072
 # If set to `null`, experiment will not be recorded
 # Otherwise, model, tensorboard, and log files will be saved to
 # /output_NEW/exp_name
 output_dir: /output_NEW
-exp_name: train_feb_12_env_orig
+exp_name: train_feb_22_env_mpc_no_veh_10_max_accel
 
 # xparl address for parallel training
 xparl_addr: localhost:8080
 
 # The number of carla servers (N) started using:
 #   --scale server=N 
-num_servers: 2
+num_servers: 25
 
 # choose deep learning framework: torch or paddle
 framework: paddle
@@ -18,15 +18,17 @@ framework: paddle
 env:
   # which environment to learn in
   #   either carla-v0 or carla_mpc-v0
-  name: carla-v0
+  # name: carla-v0
+  name: carla_mpc-v0
   dt: 0.025
   # Change this to match your server user
-  host_base: carla_rl_rowan_server
+  # host_base: carla_rl_rowan_server1
+  host_base: carla_rl_rowan_server1
   port: 2021
   render: false
   ego_vehicle_filter: "vehicle.lincoln*"
   desired_speed: 12
-  num_veh: 2
+  num_veh: 0
   num_ped: 0
   max_steps: 500
   reward_weights:
@@ -68,5 +70,5 @@ train:
   start_save_steps: 0
   save_step_freq: 1.0e+5 # 100k
   eval_episodes: 10
-  memory_size: 1.0e+5 # 500k
+  memory_size: 5.0e+5 # 500k
   batch_size: 512

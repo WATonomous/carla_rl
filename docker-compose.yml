@@ -1,6 +1,6 @@
 version: "3.8"
 services:
-  server:
+  server1:
     image: carlasim/carla:0.9.6 
     runtime: nvidia
     command: /bin/bash -c "SDL_VIDEODRIVER=offscreen SDL_HINT_CUDA_DEVICE=0 ./CarlaUE4.sh  -quality-level=Low -world-port=2021 -nosound -carla-server"
@@ -9,15 +9,27 @@ services:
         reservations:
           devices:
           - driver: nvidia
-            device_ids: ['1']
+            device_ids: ['2']
+            capabilities: [gpu]
+
+  server2:
+    image: carlasim/carla:0.9.6 
+    runtime: nvidia
+    command: /bin/bash -c "SDL_VIDEODRIVER=offscreen SDL_HINT_CUDA_DEVICE=0 ./CarlaUE4.sh  -quality-level=Low -world-port=2021 -nosound -carla-server"
+    deploy:
+      resources:
+        reservations:
+          devices:
+          - driver: nvidia
+            device_ids: ['4']
             capabilities: [gpu]
 
 
-  cuda:
-    build:
-      context: .
-      dockerfile: docker/cuda.Dockerfile
-    image: git.uwaterloo.ca:5050/watonomous/registry/carla-rl/cuda
+  # cuda:
+  #   build:
+  #     context: .
+  #     dockerfile: docker/cuda.Dockerfile
+  #   image: git.uwaterloo.ca:5050/watonomous/registry/carla-rl/cuda
 
 
   dev:
@@ -30,4 +42,11 @@ services:
       - /mnt/wato-drive/rowan-drl:/output_OLD
       # - /mnt/wato-drive2/carla_rl:/output_NEW
       - /home/rowan/carla_rl_new_output:/output_NEW
+    deploy:
+      resources:
+        reservations:
+          devices:
+          - driver: nvidia
+            device_ids: ['0']
+            capabilities: [gpu]
 
