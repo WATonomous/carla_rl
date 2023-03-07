@@ -47,15 +47,21 @@ class CarlaEnvMPC(CarlaEnv):
             vel_norm, self.mpc.str, 
             current_wpt[0], current_wpt[1], 
             yaw, vel)
-
+        throttle = float(self.mpc.thr)
+        brake = float(self.mpc.brk)
         act = carla.VehicleControl(
-            throttle=float(self.mpc.thr),
+            throttle=throttle,
             steer=float(self.mpc.str * -pi / 3),
-            brake=float(self.mpc.brk))
+            brake=brake,
+            gear=1,
+            manual_gear_shift=True
+            )
         self.ego.apply_control(act)
 
         for _ in range(4):
             self.world.tick()
+
+        self._populate_state_info()
 
         # Update timesteps
         self.time_step += 1
