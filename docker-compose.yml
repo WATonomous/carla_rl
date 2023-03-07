@@ -4,24 +4,26 @@ services:
     image: carlasim/carla:0.9.6 
     runtime: nvidia
     command: /bin/bash -c "SDL_VIDEODRIVER=offscreen SDL_HINT_CUDA_DEVICE=0 ./CarlaUE4.sh  -quality-level=Low -world-port=2021 -nosound -carla-server"
-    deploy:
-      resources:
-        reservations:
-          devices:
-          - driver: nvidia
-            device_ids: ['2']
-            capabilities: [gpu]
-
-  server2:
-    image: carlasim/carla:0.9.6 
-    runtime: nvidia
-    command: /bin/bash -c "SDL_VIDEODRIVER=offscreen SDL_HINT_CUDA_DEVICE=0 ./CarlaUE4.sh  -quality-level=Low -world-port=2021 -nosound -carla-server"
+    scale: 20
     deploy:
       resources:
         reservations:
           devices:
           - driver: nvidia
             device_ids: ['4']
+            capabilities: [gpu]
+
+  server2:
+    image: carlasim/carla:0.9.6 
+    runtime: nvidia
+    command: /bin/bash -c "SDL_VIDEODRIVER=offscreen SDL_HINT_CUDA_DEVICE=0 ./CarlaUE4.sh  -quality-level=Low -world-port=2021 -nosound -carla-server"
+    scale: 20
+    deploy:
+      resources:
+        reservations:
+          devices:
+          - driver: nvidia
+            device_ids: ['5']
             capabilities: [gpu]
 
 

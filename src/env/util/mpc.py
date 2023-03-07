@@ -47,7 +47,7 @@ class mpc_control(object):
         self._v_min = -self._v_max/4        # Maximum backward speed 4 m/s 
         self._St_max = 1.1344               # Maximum steering angle 65 degree
         self._St_min = -self._St_max        # Maximum steering angle 65 degree
-        self._a_max = 10                     # Maximum acceleration 4 m/s**2
+        self._a_max = 5                     # Maximum acceleration 4 m/s**2
         self._a_min = self._a_max * -1.5    # Maximum decceleration 6 m/s**2
         self._dSt_max = np.pi/3                # Maximum change of steering angle 
         self._dSt_min = -self._dSt_max      # Maximum change of steering angle
